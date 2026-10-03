@@ -1,12 +1,12 @@
-# agents
+# homeloop
 
 **The API of Claude Managed Agents and of OpenAI's Agents API, on any model, in
-your own AWS account.**
+your own AWS account.** The agent loop, brought home.
 
 Anthropic's Managed Agents and OpenAI's Agents API run an agent loop on the
 provider's side: server-side sessions, an event log, tools, credentials. Each
 binds that loop to its own models and keeps the data on its own infrastructure.
-`agents` is the same kind of service, deployed from this repository into your AWS
+`homeloop` is the same kind of service, deployed from this repository into your AWS
 account, running on any model the [`aichain`](https://github.com/yaitio/aichain)
 library supports — the major cloud providers, OpenRouter, and any
 OpenAI-compatible server you host.

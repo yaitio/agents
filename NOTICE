@@ -1,7 +1,7 @@
-yait agents
+yait homeloop
 Copyright 2026 yait
 
-This product is built on yait agents: https://github.com/yaitio/agents
+This product is built on yait homeloop: https://github.com/yaitio/homeloop
 
 It reaches models through yait-aichain (MIT licence).
 
