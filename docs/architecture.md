@@ -304,6 +304,6 @@ service does not support fails with a named error rather than being ignored.
 | Client-side tools, approvals | `custom` / `function` tools and `always_ask` are refused when an agent is made |
 | A sandbox | specified in [sandbox-tools.md](sandbox-tools.md) |
 | OAuth for MCP | vaults hold `static_bearer`; `mcp_oauth` refresh is next |
-| Schedules, webhooks, sub-agents, memory stores, plugins | not started; [plugins.md](plugins.md) is a draft |
+| Schedules, webhooks, sub-agents, memory stores | not started |
 | Payloads over 64 KB in S3 | results are cut at 64 KB instead |
 | Snapshots of the fold | one query per step is enough so far; a session of thousands of events will need one |
