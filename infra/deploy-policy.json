@@ -1,0 +1,161 @@
+{
+  "Version": "2012-10-17",
+  "Comment": [
+    "The policy for the deploy user. Create one IAM user, attach this, put its key",
+    "in the fork's Actions secrets. That is the whole setup.",
+    "",
+    "Placeholders: REGION, ROLE_PATH and FUNCTION_NAME. Generate the filled-in",
+    "document rather than editing this one, so a renamed resource cannot end up with",
+    "a policy that still names the old one:",
+    "",
+    "    python3 scripts/names.py --policy --region us-west-1 > /tmp/policy.json",
+    "",
+    "",
+    "It cannot write a provider key either: creating and updating a secret is denied,",
+    "so the keys are put there once by the account owner and the deploy only grants",
+    "the function permission to read them.",
+    "",
+    "It cannot grant itself anything. It may create a role only under",
+    "/yait-agents/, and may attach only AWSLambdaBasicExecutionRole to it — the",
+    "iam:PolicyARN condition is what makes that true. Without that condition,",
+    "iam:AttachRolePolicy is the right to grant any right: create a role, attach",
+    "AdministratorAccess, pass it to Lambda, run anything. iam:PutRolePolicy is",
+    "absent for the same reason — an inline policy has no ARN to condition on."
+  ],
+  "Statement": [
+    {
+      "Sid": "Identity",
+      "Effect": "Allow",
+      "Action": ["sts:GetCallerIdentity", "iam:SimulatePrincipalPolicy"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "TheFunctionsRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:ListAttachedRolePolicies",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/ROLE_PATH/*"
+    },
+    {
+      "Sid": "AttachOnlyTheLogsPolicy",
+      "Effect": "Allow",
+      "Action": "iam:AttachRolePolicy",
+      "Resource": "arn:aws:iam::*:role/ROLE_PATH/*",
+      "Comment": "Two ARNs and no others: the AWS logs policy, and the data policy the account owner created from infra/function-policy.json. This condition is the whole of why the deploy cannot escalate — without it, AttachRolePolicy on a role it can create is the right to attach AdministratorAccess and pass the result to Lambda.",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+            "arn:aws:iam::*:policy/DATA_POLICY"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PassItToLambdaOnly",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::*:role/ROLE_PATH/*",
+      "Condition": {
+        "StringEquals": { "iam:PassedToService": "lambda.amazonaws.com" }
+      }
+    },
+    {
+      "Sid": "TheFunction",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:CreateFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:DeleteFunction",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:GetPolicy"
+      ],
+      "Resource": [
+        "arn:aws:lambda:REGION:*:function:FUNCTION_NAME",
+        "arn:aws:lambda:REGION:*:function:WORKER_FUNCTION"
+      ]
+    },
+    {
+      "Sid": "TheApi",
+      "Comment": "HTTP verbs, because that is how API Gateway's IAM actions are shaped. This is the one statement that cannot name a single resource: an API has no identifier until it is created.",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:PATCH",
+        "apigateway:DELETE"
+      ],
+      "Resource": "arn:aws:apigateway:REGION::/restapis*"
+    },
+    {
+      "Sid": "TheTwoTables",
+      "Comment": "Create them if absent, describe them on every release, and read and write their items. Named, so nothing else in the account is in scope. UpdateTable and DeleteTable are here because a release must be able to change and undo what it made.",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:UpdateTable",
+        "dynamodb:DeleteTable",
+        "dynamodb:UpdateTimeToLive",
+        "dynamodb:DescribeTimeToLive",
+        "dynamodb:TagResource",
+        "dynamodb:ListTagsOfResource",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:TransactGetItems",
+        "dynamodb:TransactWriteItems"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:REGION:*:table/SESSIONS_TABLE",
+        "arn:aws:dynamodb:REGION:*:table/EVENTS_TABLE",
+        "arn:aws:dynamodb:REGION:*:table/AGENTS_TABLE"
+      ]
+    },
+    {
+      "Sid": "ListTablesToFindThem",
+      "Comment": "dynamodb:ListTables takes no resource — it is account-wide by design, and read-only.",
+      "Effect": "Allow",
+      "Action": "dynamodb:ListTables",
+      "Resource": "*"
+    },
+    {
+      "Sid": "NeverWidenItself",
+      "Effect": "Deny",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:CreateUser",
+        "iam:CreatePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:AttachUserPolicy",
+        "iam:PutUserPolicy",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:PutRolePermissionsBoundary",
+        "iam:CreateAccessKey",
+        "iam:CreateLoginProfile",
+        "secretsmanager:CreateSecret",
+        "secretsmanager:PutSecretValue",
+        "secretsmanager:UpdateSecret",
+        "secretsmanager:DeleteSecret",
+        "organizations:*",
+        "account:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

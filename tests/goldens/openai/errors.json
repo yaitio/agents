@@ -1,0 +1,43 @@
+{
+ "source": {
+  "target": "original",
+  "host": "https://api.openai.com/v1",
+  "model": "gpt-6-luna",
+  "anthropic_sdk": "1.8.0",
+  "recorded_on": "2026-09-30"
+ },
+ "trace": [
+  [
+   "get missing",
+   [
+    404,
+    "not_found_error",
+    "not_found_error"
+   ]
+  ],
+  [
+   "unknown field",
+   [
+    400,
+    "invalid_request_error",
+    "invalid_request_error"
+   ]
+  ],
+  [
+   "no input without an environment",
+   [
+    400,
+    "invalid_request_error",
+    "invalid_request_error"
+   ]
+  ],
+  [
+   "missing agent",
+   [
+    404,
+    "not_found_error",
+    "not_found_error"
+   ]
+  ]
+ ]
+}

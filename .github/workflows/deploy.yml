@@ -1,0 +1,251 @@
+name: Deploy
+
+# Fork the repository, add credentials, release. That is the whole product, so
+# this workflow is the only sanctioned way to release — a deploy run from a
+# maintainer's shell proves the wrong thing.
+#
+# Required Actions *secrets* (Settings -> Secrets and variables -> Actions):
+#   AWS_ACCESS_KEY_ID
+#   AWS_SECRET_ACCESS_KEY
+#
+# Required Actions *variable* (same page, Variables tab — not a secret):
+#   AWS_REGION       e.g. us-west-1
+#
+# Optional variable:
+#   STAGE_NAME       defaults to prod
+#
+# The credentials belong to an IAM user whose only job is this deploy, carrying
+# infra/deploy-policy.json and nothing more. The first step of every run is a
+# permission check, so a key that is missing a right fails before anything is
+# created rather than halfway through.
+#
+# If you would rather hold no long-lived key at all, infra/bootstrap.json sets up
+# a GitHub OIDC trust instead and the credential steps below become a role to
+# assume. That is the stronger option; it is not the default because it needs
+# rights to create an identity provider, which a deploy key does not.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "openapi/**"
+      - "src/**"
+      - "scripts/**"
+      - "infra/**"
+      # The suite is what a release runs against itself, so a change to it has to
+      # re-verify the deployment. Leaving it out meant a fix to the verification
+      # was pushed and nothing re-ran.
+      - "tests/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      plan_only:
+        description: "Say what would change and stop"
+        type: boolean
+        default: false
+      teardown:
+        description: "Delete everything this deploy created"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Both spellings accepted. The AWS CLI and every SDK read AWS_ACCESS_KEY_ID;
+      # AWS_ACCESS_KEY is a common near-miss that silently configures nothing, so
+      # it is taken here and exported under the name the tooling actually reads.
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID || secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+      # Names. Every one has a default; set only what you want to change.
+      # YAIT_PREFIX moves all four at once, the rest are for a name already taken
+      # or a convention that is not negotiable. python3 scripts/names.py prints
+      # what will be used, and --policy prints the IAM policy that matches.
+      STAGE_NAME: ${{ vars.STAGE_NAME }}
+      # A token for the deployment, so the contract tests can call it: a JWT the
+      # owner issued with scripts/keys.py, from the key only they hold.
+      YAIT_CLIENT_KEY: ${{ secrets.YAIT_CLIENT_KEY }}
+      # No provider keys, on purpose: the installation pays for no tokens, and a
+      # release checks the infrastructure, not a model. The checks that need a
+      # model's answer say "skipped" here, and run from a client that brings its
+      # own key — evals/quality.py, tests/behaviour.py — as any user would.
+      YAIT_PREFIX: ${{ vars.YAIT_PREFIX }}
+      YAIT_ROLE_PATH: ${{ vars.YAIT_ROLE_PATH }}
+      YAIT_ROLE_NAME: ${{ vars.YAIT_ROLE_NAME }}
+      YAIT_FUNCTION_NAME: ${{ vars.YAIT_FUNCTION_NAME }}
+      YAIT_API_NAME: ${{ vars.YAIT_API_NAME }}
+      YAIT_RUNTIME: ${{ vars.YAIT_RUNTIME }}
+      YAIT_ARCHITECTURE: ${{ vars.YAIT_ARCHITECTURE }}
+      YAIT_MEMORY_MB: ${{ vars.YAIT_MEMORY_MB }}
+      YAIT_WORKER_MEMORY_MB: ${{ vars.YAIT_WORKER_MEMORY_MB }}
+      YAIT_TIMEOUT_S: ${{ vars.YAIT_TIMEOUT_S }}
+      # Named model servers, one per line: mygpu=https://gpu.example.com/v1. A
+      # caller asks for mygpu/<model>. OpenRouter is built in. See src/endpoints.py.
+      YAIT_ENDPOINTS: ${{ vars.YAIT_ENDPOINTS }}
+      # The most one answer may take, thinking included; empty for the default
+      # (32768). Neither original API lets a caller set it: it is the platform's.
+      YAIT_MAX_TOKENS: ${{ vars.YAIT_MAX_TOKENS }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refuse to start without the credentials
+        run: |
+          missing=
+          [ -n "$AWS_ACCESS_KEY_ID" ]     || missing="$missing AWS_ACCESS_KEY_ID(secret)"
+          [ -n "$AWS_SECRET_ACCESS_KEY" ] || missing="$missing AWS_SECRET_ACCESS_KEY(secret)"
+          [ -n "$AWS_REGION" ]            || missing="$missing AWS_REGION(variable)"
+          if [ -z "$YAIT_CLIENT_KEY" ]; then
+            # The first release makes the table the signing key goes in, so no
+            # token can exist before it. It deploys; the checks against the
+            # deployment wait for the token.
+            echo "::warning::No YAIT_CLIENT_KEY yet: deploying without the checks against the deployment. After this release, run scripts/keys.py keygen and issue, and add the token as the YAIT_CLIENT_KEY secret."
+          fi
+          if [ -n "$missing" ]; then
+            echo "::error::Missing:$missing"
+            echo "Create an IAM user carrying infra/deploy-policy.json, then add its"
+            echo "key as Actions secrets and the region as an Actions variable."
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: The function's own dependencies
+        # The suite runs the real handler through the real resolver, so what the
+        # function imports has to be importable here too.
+        run: pip install --quiet -r src/requirements.txt -r tests/requirements.txt
+
+      # ── everything that needs no AWS, before touching AWS ────────────────
+      - name: The committed OpenAPI document is not stale
+        run: python3 openapi/build.py --check
+
+      - name: Contract tests, locally
+        run: python3 tests/test_api.py
+
+      - name: The suite fails when there is nothing to test
+        # Guards the guard. Without this, an empty base URL sends the suite to a
+        # local server and a deploy that created nothing reports 106 passes.
+        run: python3 tests/test_api.py --self-test
+
+      - name: The fold
+        # A pure function, and the one place a defect is invisible to every other
+        # test: if it drifts the agent reasons over a conversation that did not
+        # happen, and nothing turns red.
+        run: python3 tests/test_fold.py
+
+      - name: The store, in memory
+        run: python3 tests/test_store.py
+
+      - name: Agents — the store, the two renderings, the tenant
+        run: python3 tests/test_agents.py
+
+      - name: Sessions — and the turns and items folded from the same log
+        run: python3 tests/test_sessions.py
+
+      - name: The step worker — lease, lost wakeup, orphaned turn, handoff
+        run: python3 tests/test_worker.py
+
+      - name: The model backends, without a network
+        run: python3 tests/test_model.py
+
+      - name: Vaults — the seal, the store, and no secret ever returned
+        run: python3 tests/test_vault.py
+
+      - name: Layer three's instrument — scorers, the decision, the plumbing
+        # The quality eval itself costs money and never runs here; what decides
+        # a model switch has to be right before the first dollar, and that is free.
+        run: python3 tests/test_quality.py
+
+      - name: Conformance — every Anthropic response is the SDK's own type
+        # Layer one of docs/testing.md: raw bodies validated strictly against the
+        # official SDK's models, including the error a failed turn produces.
+        run: python3 tests/conformance_anthropic.py
+
+      - name: Conformance — every OpenAI response is what their OpenAPI document declares
+        run: python3 tests/conformance_openai.py
+
+      - name: Behaviour — each scenario's trace against its golden
+        # Layer two. A golden recorded from the original is a parity check; one
+        # recorded from us is provisional and says so in the report.
+        run: python3 tests/behaviour.py
+
+      # ── step zero: are the credentials sufficient ───────────────────────
+      - name: The names this release will use
+        run: python3 scripts/names.py
+
+      - name: Permission check
+        run: python3 scripts/check_permissions.py --region "$AWS_REGION"
+
+      # ── the deploy ──────────────────────────────────────────────────────
+      - name: Teardown
+        if: ${{ inputs.teardown == true }}
+        run: python3 scripts/deploy.py --region "$AWS_REGION" --delete
+                 --skip-permission-check
+
+      - name: Plan
+        if: ${{ inputs.teardown != true }}
+        run: python3 scripts/deploy.py --region "$AWS_REGION" --plan
+                 --skip-permission-check
+
+      - name: Apply
+        if: ${{ inputs.teardown != true && inputs.plan_only != true }}
+        id: apply
+        run: |
+          # pipefail, because a pipeline reports the status of its last command:
+          # piping a failing deploy into tee produced a green run on a deploy that
+          # had created nothing.
+          set -o pipefail
+          python3 scripts/deploy.py --region "$AWS_REGION" \
+            --skip-permission-check --url-out /tmp/base-url
+          base=$(cat /tmp/base-url)
+          if [ -z "$base" ]; then
+            echo "::error::The deploy produced no URL."
+            exit 1
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Deployed"
+            echo
+            echo '| | |'
+            echo '|---|---|'
+            echo "| Base URL | \`$base\` |"
+            echo "| Anthropic SDK \`base_url\` | \`$base/anthropic\` |"
+            echo "| OpenAI SDK \`base_url\` | \`$base/openai/v1\` |"
+            echo
+            echo 'The two differ by more than the prefix: the Anthropic SDK adds `/v1` itself, the OpenAI SDK expects it inside `base_url`.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: The same contract tests, against the deployment
+        if: ${{ env.YAIT_CLIENT_KEY != '' && inputs.teardown != true && inputs.plan_only != true }}
+        run: |
+          # One suite, two environments. The only permitted difference is the
+          # host; anything else failing here is a parity failure, not a flake.
+          python3 tests/test_api.py --base-url "${{ steps.apply.outputs.base }}" \
+            --skip-spec --key "$YAIT_CLIENT_KEY"
+
+      - name: Conformance, against the deployment
+        # Runs even when the contract step above failed: the two answer different
+        # questions, and a red one should not hide the other's answer.
+        if: ${{ !cancelled() && steps.apply.outcome == 'success' && env.YAIT_CLIENT_KEY != '' && inputs.teardown != true && inputs.plan_only != true }}
+        run: |
+          python3 tests/conformance_anthropic.py \
+            --base-url "${{ steps.apply.outputs.base }}" --key "$YAIT_CLIENT_KEY"
+          python3 tests/conformance_openai.py \
+            --base-url "${{ steps.apply.outputs.base }}" --key "$YAIT_CLIENT_KEY"
+
+      - name: Behaviour, against the deployment
+        if: ${{ !cancelled() && steps.apply.outcome == 'success' && env.YAIT_CLIENT_KEY != '' && inputs.teardown != true && inputs.plan_only != true }}
+        run: |
+          python3 tests/behaviour.py \
+            --base-url "${{ steps.apply.outputs.base }}" --key "$YAIT_CLIENT_KEY"

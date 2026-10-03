@@ -1,0 +1,11 @@
+# What the tests need beyond the function's own dependencies. The official SDK is
+# the reference the conformance suite validates against, so its version is pinned:
+# moving it is a deliberate re-baseline, not something a fresh install does quietly.
+anthropic==1.8.0
+# The OpenAI dialect has no SDK with the Agents API; its reference is the published
+# OpenAPI document (tests/reference/openai-agents.json), read by a JSON Schema
+# validator. PyYAML is needed only to re-cut that reference, not to run the suite.
+jsonschema==4.26.0
+# The test MCP server (tests/mcp_faults) the tool scenarios start: fastmcp comes
+# with the function's own dependencies, the server that runs it does not.
+uvicorn==0.37.0

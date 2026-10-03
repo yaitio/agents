@@ -1,0 +1,41 @@
+{
+ "source": {
+  "target": "original",
+  "host": "https://api.openai.com/v1",
+  "model": "gpt-6-luna",
+  "anthropic_sdk": "1.8.0",
+  "recorded_on": "2026-09-30"
+ },
+ "trace": [
+  [
+   "deleted",
+   [
+    200,
+    "agent.session.deleted",
+    true
+   ]
+  ],
+  [
+   "get",
+   [
+    404,
+    "not_found_error",
+    "not_found_error"
+   ]
+  ],
+  [
+   "delete again",
+   [
+    200
+   ]
+  ],
+  [
+   "delete unknown",
+   [
+    404,
+    "not_found_error",
+    "not_found_error"
+   ]
+  ]
+ ]
+}

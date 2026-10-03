@@ -1,0 +1,44 @@
+{
+ "source": {
+  "target": "original",
+  "host": "https://api.openai.com/v1",
+  "model": "gpt-6-luna",
+  "anthropic_sdk": "1.8.0",
+  "recorded_on": "2026-09-30",
+  "normalised": "runs of output_text.delta collapsed to one, as tests/behaviour.py now traces them"
+ },
+ "trace": [
+  [
+   "sent",
+   202
+  ],
+  [
+   "after",
+   "idle"
+  ],
+  [
+   "events of the second turn",
+   [
+    "agent.session.turn.created",
+    "agent.session.turn.item.added",
+    "agent.session.in_progress",
+    "agent.session.turn.in_progress",
+    "agent.session.turn.item.added",
+    "agent.session.turn.content_part.added",
+    "agent.session.turn.output_text.delta",
+    "agent.session.turn.output_text.done",
+    "agent.session.turn.content_part.done",
+    "agent.session.turn.item.done",
+    "agent.session.turn.completed",
+    "agent.session.idle"
+   ]
+  ],
+  [
+   "turns",
+   [
+    "completed",
+    "completed"
+   ]
+  ]
+ ]
+}

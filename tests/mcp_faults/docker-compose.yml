@@ -1,0 +1,22 @@
+# The test MCP server and the proxy that gives it HTTPS. Run on a host with
+# ports 80 and 443 open: `docker compose up -d --build`, with MCP_FAULTS_HOST and
+# MCP_FAULTS_TOKENS in .env beside this file.
+services:
+  mcp-faults:
+    build: .
+    restart: unless-stopped
+    environment:
+      MCP_FAULTS_TOKENS: ${MCP_FAULTS_TOKENS}
+    expose: ["8020"]          # reached only through Caddy, on the compose network
+    mem_limit: 256m
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [mcp-faults]
+    environment:
+      MCP_FAULTS_HOST: ${MCP_FAULTS_HOST}
+    ports: ["80:80", "443:443"]
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy-data:/data"]
+    mem_limit: 128m
+volumes:
+  caddy-data:

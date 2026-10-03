@@ -1,0 +1,4 @@
+# HTTPS for the test MCP server only. The host's other services do not go through it.
+{$MCP_FAULTS_HOST} {
+	reverse_proxy mcp-faults:8020
+}

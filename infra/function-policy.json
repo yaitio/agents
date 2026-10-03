@@ -1,0 +1,70 @@
+{
+  "Version": "2012-10-17",
+  "Comment": [
+    "What the API function may reach. Created once by the account owner as a",
+    "customer-managed policy, because the deploy deliberately cannot grant it.",
+    "",
+    "    sed 's/REGION/us-west-1/g; s/PREFIX/yait_agents/g' \\",
+    "      infra/function-policy.json > /tmp/function-policy.json",
+    "    aws iam create-policy --policy-name PREFIX_data \\",
+    "      --policy-document file:///tmp/function-policy.json",
+    "",
+    "Why the owner and not the deploy: a release that can attach an arbitrary policy",
+    "to a role it can create, and pass that role to Lambda, can run anything as an",
+    "administrator. So the deploy may attach exactly two policy ARNs \u2014 the AWS",
+    "logs policy and this one \u2014 and nothing else. That is one `iam:PolicyARN`",
+    "condition in infra/deploy-policy.json, and it is the reason this file exists",
+    "separately rather than being written inline by a script.",
+    "",
+    "The function itself holds no provider key and makes no model call. It reads and",
+    "writes the session record, the event log and the agent definitions, and reads",
+    "the client keys to know whose request it is. When the step worker arrives it",
+    "gets a role of its own, with the provider keys, and this one does not grow."
+  ],
+  "Statement": [
+    {
+      "Sid": "Logs",
+      "Comment": "Also granted by AWSLambdaBasicExecutionRole; repeated so this policy alone is sufficient if the managed one is ever detached.",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:REGION:*:log-group:/aws/lambda/PREFIX*"
+    },
+    {
+      "Sid": "TheSessionRecordAndTheLog",
+      "Comment": "No CreateTable and no DeleteTable: the function uses the tables, the release makes them. Named, so nothing else in the account is reachable.",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:TransactGetItems",
+        "dynamodb:TransactWriteItems"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:REGION:*:table/PREFIX_sessions",
+        "arn:aws:dynamodb:REGION:*:table/PREFIX_events",
+        "arn:aws:dynamodb:REGION:*:table/PREFIX_agents"
+      ]
+    },
+    {
+      "Sid": "ReadTheVaultKey",
+      "Comment": "Read only, and one secret. The function needs to know whose request this is; it does not need, and must not have, the provider keys \u2014 those belong to the step worker, which is a different function with a different role.",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+      ],
+      "Resource": "arn:aws:secretsmanager:REGION:*:secret:PREFIX/vault-key*"
+    }
+  ]
+}

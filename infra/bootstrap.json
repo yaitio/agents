@@ -1,0 +1,246 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "yait agents — bootstrap, launched once per AWS account from the console. Creates a GitHub OIDC trust, a deploy role only your fork's default branch can assume, and a permissions boundary on everything the deploy creates. No IAM user, no access keys: GitHub Actions gets short-lived credentials per run.",
+
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        { "Label": { "default": "Your fork" }, "Parameters": ["GitHubOwner", "GitHubRepo", "GitHubBranch"] },
+        { "Label": { "default": "Naming and reuse" }, "Parameters": ["StackNamePrefix", "CreateOidcProvider"] }
+      ]
+    }
+  },
+
+  "Parameters": {
+    "GitHubOwner": {
+      "Type": "String",
+      "Description": "The GitHub user or organisation that owns your fork, e.g. yaitio."
+    },
+    "GitHubRepo": {
+      "Type": "String",
+      "Default": "agents",
+      "Description": "The fork's repository name."
+    },
+    "GitHubBranch": {
+      "Type": "String",
+      "Default": "main",
+      "Description": "Only this branch may assume the deploy role. A pull request from a fork cannot."
+    },
+    "StackNamePrefix": {
+      "Type": "String",
+      "Default": "yait-agents",
+      "Description": "The deploy role may only touch resources whose names start with this."
+    },
+    "CreateOidcProvider": {
+      "Type": "String",
+      "AllowedValues": ["yes", "no"],
+      "Default": "yes",
+      "Description": "An account can hold only one OIDC provider per URL. Choose no if token.actions.githubusercontent.com is already registered, or this stack will fail."
+    }
+  },
+
+  "Conditions": {
+    "MakeOidc": { "Fn::Equals": [{ "Ref": "CreateOidcProvider" }, "yes"] }
+  },
+
+  "Resources": {
+    "GitHubOidcProvider": {
+      "Type": "AWS::IAM::OIDCProvider",
+      "Condition": "MakeOidc",
+      "Properties": {
+        "Url": "https://token.actions.githubusercontent.com",
+        "ClientIdList": ["sts.amazonaws.com"]
+      }
+    },
+
+    "DeployBoundary": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": { "Fn::Sub": "${StackNamePrefix}-boundary" },
+        "Description": "The ceiling on every role the deploy creates. The deploy role is necessarily broad, because the stack creates roles for its own functions; this is what stops those roles from becoming more than the stack needs. Without it a deploy role is effectively an administrator.",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ServiceActionsTheStackNeeds",
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogStreams",
+                "dynamodb:*",
+                "s3:*",
+                "sqs:*",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+                "states:StartExecution",
+                "events:PutEvents",
+                "scheduler:*",
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream",
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "NeverGrantItselfMore",
+              "Effect": "Deny",
+              "Action": [
+                "iam:CreateUser",
+                "iam:CreateAccessKey",
+                "iam:UpdateAccessKey",
+                "iam:CreateLoginProfile",
+                "iam:UpdateLoginProfile",
+                "iam:CreateRole",
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePermissionsBoundary",
+                "iam:PutRolePermissionsBoundary",
+                "iam:CreatePolicy",
+                "iam:CreatePolicyVersion",
+                "iam:CreateOpenIDConnectProvider",
+                "iam:CreateSAMLProvider",
+                "organizations:*",
+                "account:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+
+    "DeployRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::Sub": "${StackNamePrefix}-deploy" },
+        "Description": "Assumed by GitHub Actions in your fork, for one run at a time.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Federated": {
+                "Fn::If": [
+                  "MakeOidc",
+                  { "Ref": "GitHubOidcProvider" },
+                  { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com" }
+                ]
+              }
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+              "StringEquals": {
+                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                "token.actions.githubusercontent.com:sub": {
+                  "Fn::Sub": "repo:${GitHubOwner}/${GitHubRepo}:ref:refs/heads/${GitHubBranch}"
+                }
+              }
+            }
+          }]
+        },
+        "Policies": [{
+          "PolicyName": "deploy",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "CloudFormationForOurStacksOnly",
+                "Effect": "Allow",
+                "Action": "cloudformation:*",
+                "Resource": [
+                  { "Fn::Sub": "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${StackNamePrefix}*/*" },
+                  { "Fn::Sub": "arn:aws:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31" }
+                ]
+              },
+              {
+                "Sid": "ReadOnlyDiscovery",
+                "Effect": "Allow",
+                "Action": [
+                  "cloudformation:Describe*",
+                  "cloudformation:List*",
+                  "cloudformation:GetTemplateSummary",
+                  "cloudformation:ValidateTemplate"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "SamArtefactBucket",
+                "Effect": "Allow",
+                "Action": ["s3:CreateBucket", "s3:PutBucketVersioning", "s3:PutBucketPolicy",
+                           "s3:PutEncryptionConfiguration", "s3:GetBucketLocation",
+                           "s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+                "Resource": [
+                  "arn:aws:s3:::aws-sam-cli-managed-*",
+                  "arn:aws:s3:::aws-sam-cli-managed-*/*"
+                ]
+              },
+              {
+                "Sid": "Lambda",
+                "Effect": "Allow",
+                "Action": "lambda:*",
+                "Resource": { "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${StackNamePrefix}*" }
+              },
+              {
+                "Sid": "LambdaAccountReads",
+                "Effect": "Allow",
+                "Action": ["lambda:GetAccountSettings", "lambda:ListFunctions"],
+                "Resource": "*"
+              },
+              {
+                "Sid": "ApiGateway",
+                "Effect": "Allow",
+                "Action": "apigateway:*",
+                "Resource": { "Fn::Sub": "arn:aws:apigateway:${AWS::Region}::*" }
+              },
+              {
+                "Sid": "Logs",
+                "Effect": "Allow",
+                "Action": ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DescribeLogGroups",
+                           "logs:PutRetentionPolicy", "logs:TagResource", "logs:ListTagsForResource"],
+                "Resource": { "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${StackNamePrefix}*" }
+              },
+              {
+                "Sid": "RolesForTheStackSFunctions",
+                "Effect": "Allow",
+                "Action": ["iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:TagRole", "iam:UntagRole",
+                           "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:ListAttachedRolePolicies",
+                           "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy", "iam:ListRolePolicies",
+                           "iam:UpdateAssumeRolePolicy", "iam:PassRole"],
+                "Resource": { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/yait-agents/*" },
+                "Condition": {
+                  "StringEquals": {
+                    "iam:PermissionsBoundary": { "Ref": "DeployBoundary" }
+                  }
+                }
+              },
+              {
+                "Sid": "ReadTheBoundaryItMustAttach",
+                "Effect": "Allow",
+                "Action": ["iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyVersions"],
+                "Resource": { "Ref": "DeployBoundary" }
+              }
+            ]
+          }
+        }]
+      }
+    }
+  },
+
+  "Outputs": {
+    "AwsRoleArn": {
+      "Description": "Set this as the AWS_ROLE_ARN repository *variable* in your fork (Settings -> Secrets and variables -> Actions -> Variables). It is not a secret.",
+      "Value": { "Fn::GetAtt": ["DeployRole", "Arn"] }
+    },
+    "PermissionsBoundaryArn": {
+      "Description": "Passed to the deploy so every role it creates is bounded by it. The Deploy workflow reads it from this stack, so nothing to copy.",
+      "Value": { "Ref": "DeployBoundary" }
+    },
+    "NextStep": {
+      "Value": { "Fn::Sub": "Set AWS_ROLE_ARN and AWS_REGION (${AWS::Region}) as Actions variables in ${GitHubOwner}/${GitHubRepo}, then run the Deploy workflow." }
+    }
+  }
+}

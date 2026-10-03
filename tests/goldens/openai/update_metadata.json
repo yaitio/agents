@@ -1,0 +1,27 @@
+{
+ "source": {
+  "target": "original",
+  "host": "https://api.openai.com/v1",
+  "model": "gpt-6-luna",
+  "anthropic_sdk": "1.8.0",
+  "recorded_on": "2026-09-30"
+ },
+ "trace": [
+  [
+   "replaced",
+   [
+    200,
+    {
+     "b": "2"
+    }
+   ]
+  ],
+  [
+   "cleared",
+   [
+    200,
+    {}
+   ]
+  ]
+ ]
+}

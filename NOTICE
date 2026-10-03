@@ -1,0 +1,10 @@
+yait agents
+Copyright 2026 yait
+
+This product is built on yait agents: https://github.com/yaitio/agents
+
+It reaches models through yait-aichain (MIT licence).
+
+Under section 4(d) of the Apache License 2.0, any distribution of this work or
+of a work derived from it must carry this notice. The name "yait" is not
+licensed by it (section 6).

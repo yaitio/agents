@@ -1,0 +1,35 @@
+{
+ "source": {
+  "target": "original",
+  "host": "https://api.anthropic.com",
+  "model": "claude-haiku-4-5-20251001",
+  "anthropic_sdk": "1.8.0",
+  "recorded_on": "2026-09-30"
+ },
+ "trace": [
+  [
+   "after",
+   "idle"
+  ],
+  [
+   "events",
+   [
+    "session.status_running",
+    "session.thread_status_running",
+    "user.message",
+    "span.model_request_start",
+    "agent.thinking",
+    "agent.message",
+    "span.model_request_end",
+    "user.message",
+    "span.model_request_start",
+    "agent.thinking",
+    "agent.message",
+    "span.model_request_end",
+    "session.thread_status_idle",
+    "session.usage",
+    "session.status_idle:end_turn"
+   ]
+  ]
+ ]
+}

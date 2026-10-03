@@ -1,0 +1,3 @@
+aws-lambda-powertools==3.35.0
+yait-aichain[mcp]==3.0.0
+PyJWT[crypto]==2.10.1

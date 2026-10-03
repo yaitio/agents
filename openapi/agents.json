@@ -1,0 +1,1958 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "yait agents",
+    "version": "0.1.0",
+    "description": "Cloud agents with the API shape of Claude Managed Agents and of OpenAI's Agents API, on any model, in your own AWS account.\n\nTwo dialects behind two path prefixes, because 29 method+path pairs collide between them. A client sets base_url to `<host>/anthropic` for the Anthropic SDK, or `<host>/openai/v1` for the OpenAI SDK — the asymmetry is real: the Anthropic SDK's own paths already begin with /v1.\n\nThis revision is a skeleton: every route answers a stub so that routing, dialect selection and the stage can be verified before any behaviour exists."
+  },
+  "tags": [
+    {
+      "name": "anthropic",
+      "description": "Anthropic Managed Agents dialect"
+    },
+    {
+      "name": "openai",
+      "description": "OpenAI Agents API dialect"
+    }
+  ],
+  "paths": {
+    "/anthropic/v1/agents": {
+      "get": {
+        "operationId": "anthropicListAgents",
+        "summary": "List agents",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "anthropicCreateAgent",
+        "summary": "Create an agent",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/agents/{agent_id}": {
+      "get": {
+        "operationId": "anthropicGetAgent",
+        "summary": "Get an agent",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "anthropicUpdateAgent",
+        "summary": "Update an agent",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/agents/{agent_id}/archive": {
+      "post": {
+        "operationId": "anthropicArchiveAgent",
+        "summary": "Archive an agent",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/agents/{agent_id}/versions": {
+      "get": {
+        "operationId": "anthropicListAgentVersions",
+        "summary": "List agent versions",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/anthropic/v1/sessions": {
+      "get": {
+        "operationId": "anthropicListSessions",
+        "summary": "List sessions",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "anthropicCreateSession",
+        "summary": "Create a session",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/sessions/{session_id}": {
+      "get": {
+        "operationId": "anthropicGetSession",
+        "summary": "Get a session",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "anthropicUpdateSession",
+        "summary": "Update a session",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "anthropicDeleteSession",
+        "summary": "Delete a session",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/anthropic/v1/sessions/{session_id}/archive": {
+      "post": {
+        "operationId": "anthropicArchiveSession",
+        "summary": "Archive a session",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/sessions/{session_id}/events": {
+      "get": {
+        "operationId": "anthropicListEvents",
+        "summary": "List events",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "anthropicSendEvents",
+        "summary": "Send events",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/sessions/{session_id}/events/stream": {
+      "get": {
+        "operationId": "anthropicStreamEvents",
+        "summary": "Stream events (SSE)",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Declared for surface completeness. A real implementation cannot run through API Gateway, which buffers responses and times an integration out at about 30 s; it needs a Lambda Function URL in RESPONSE_STREAM mode behind the same distribution."
+      }
+    },
+    "/anthropic/v1/vaults": {
+      "get": {
+        "operationId": "anthropicListVaults",
+        "summary": "List vaults",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "anthropicCreateVault",
+        "summary": "Create a vault",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/vaults/{vault_id}": {
+      "get": {
+        "operationId": "anthropicGetVault",
+        "summary": "Get a vault",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "anthropicUpdateVault",
+        "summary": "Update a vault",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "anthropicDeleteVault",
+        "summary": "Delete a vault",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/anthropic/v1/vaults/{vault_id}/archive": {
+      "post": {
+        "operationId": "anthropicArchiveVault",
+        "summary": "Archive a vault",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/vaults/{vault_id}/credentials": {
+      "get": {
+        "operationId": "anthropicListCredentials",
+        "summary": "List credentials",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "anthropicCreateCredential",
+        "summary": "Create a credential",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anthropic/v1/vaults/{vault_id}/credentials/{credential_id}": {
+      "get": {
+        "operationId": "anthropicGetCredential",
+        "summary": "Get a credential",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "anthropicUpdateCredential",
+        "summary": "Update a credential",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "anthropicDeleteCredential",
+        "summary": "Delete a credential",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/anthropic/v1/vaults/{vault_id}/credentials/{credential_id}/archive": {
+      "post": {
+        "operationId": "anthropicArchiveCredential",
+        "summary": "Archive a credential",
+        "tags": [
+          "anthropic"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openai/v1/agents": {
+      "get": {
+        "operationId": "openaiListAgents",
+        "summary": "List agents",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "openaiCreateAgent",
+        "summary": "Create an agent",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openai/v1/agents/{agent_id}": {
+      "get": {
+        "operationId": "openaiGetAgent",
+        "summary": "Get an agent",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "openaiUpdateAgent",
+        "summary": "Update an agent",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "openaiDeleteAgent",
+        "summary": "Delete an agent",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/openai/v1/agents/sessions": {
+      "get": {
+        "operationId": "openaiListSessions",
+        "summary": "List sessions",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "openaiCreateSession",
+        "summary": "Create a session",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openai/v1/agents/sessions/{session_id}": {
+      "get": {
+        "operationId": "openaiGetSession",
+        "summary": "Get a session",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "openaiUpdateSession",
+        "summary": "Update a session",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "openaiDeleteSession",
+        "summary": "Delete a session",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/openai/v1/vaults": {
+      "get": {
+        "operationId": "openaiListVaults",
+        "summary": "List vaults",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "openaiCreateVault",
+        "summary": "Create a vault",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openai/v1/vaults/{vault_id}": {
+      "get": {
+        "operationId": "openaiGetVault",
+        "summary": "Get a vault",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "openaiDeleteVault",
+        "summary": "Delete a vault",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/openai/v1/vaults/{vault_id}/credentials": {
+      "get": {
+        "operationId": "openaiListCredentials",
+        "summary": "List credentials",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "openaiCreateCredential",
+        "summary": "Create a credential",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openai/v1/vaults/{vault_id}/credentials/{credential_id}": {
+      "get": {
+        "operationId": "openaiGetCredential",
+        "summary": "Get a credential",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "openaiRotateCredential",
+        "summary": "Rotate a credential",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "openaiDeleteCredential",
+        "summary": "Delete a credential",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "vault_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credential_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/openai/v1/agents/sessions/{session_id}/events": {
+      "get": {
+        "operationId": "openaiListEvents",
+        "summary": "List events",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "openaiSendEvents",
+        "summary": "Send events",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openai/v1/agents/sessions/{session_id}/items": {
+      "get": {
+        "operationId": "openaiListItems",
+        "summary": "List items",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/openai/v1/agents/sessions/{session_id}/turns": {
+      "get": {
+        "operationId": "openaiListTurns",
+        "summary": "List turns",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/openai/v1/agents/sessions/{session_id}/turns/{turn_id}": {
+      "get": {
+        "operationId": "openaiGetTurn",
+        "summary": "Get a turn",
+        "tags": [
+          "openai"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stub acknowledgement. The skeleton answers every route so routing, the dialect prefix and the stage can be verified before any behaviour exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stub"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "turn_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AnthropicApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Stub": {
+        "type": "object",
+        "required": [
+          "ok",
+          "dialect",
+          "operation_id",
+          "method",
+          "path"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "dialect": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai"
+            ]
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "path_parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "stub": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "type",
+          "error"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "error": {
+            "type": "object",
+            "required": [
+              "type",
+              "message"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "No accepted credential on the request.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+node_modules/
+cdk.out/
+.terraform/
+*.tfstate
+*.tfstate.*
+dist/
+build/
+.DS_Store
+evals/runs/
+
+# Eval runs: the tables in docs/benchmarks.md summarise them; each run is the
+# machine's that made it, and its passport names a deployment.
+evals/results/

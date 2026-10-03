@@ -1,0 +1,78 @@
+name: Test
+
+# Runs on every push and pull request, with no AWS and no credentials. It installs
+# the function's dependencies and the official SDK the conformance suite checks
+# against — nothing else.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: The function's own dependencies
+        # The suite runs the real handler through the real resolver, so what the
+        # function imports has to be importable here too.
+        run: pip install --quiet -r src/requirements.txt -r tests/requirements.txt
+
+      - name: The committed OpenAPI document is not stale
+        run: python3 openapi/build.py --check
+
+      - name: Contract tests against a local server
+        run: python3 tests/test_api.py
+
+      - name: The suite fails when there is nothing to test
+        # Guards the guard. Without this, an empty base URL sends the suite to a
+        # local server and a deploy that created nothing reports 106 passes.
+        run: python3 tests/test_api.py --self-test
+
+      - name: The fold
+        # A pure function, and the one place a defect is invisible to every other
+        # test: if it drifts the agent reasons over a conversation that did not
+        # happen, and nothing turns red.
+        run: python3 tests/test_fold.py
+
+      - name: The store, in memory
+        run: python3 tests/test_store.py
+
+      - name: Agents — the store, the two renderings, the tenant
+        run: python3 tests/test_agents.py
+
+      - name: Sessions — and the turns and items folded from the same log
+        run: python3 tests/test_sessions.py
+
+      - name: The step worker — lease, lost wakeup, orphaned turn, handoff
+        run: python3 tests/test_worker.py
+
+      - name: The model backends, without a network
+        run: python3 tests/test_model.py
+
+      - name: Layer three's instrument — scorers, the decision, the plumbing
+        # The quality eval itself costs money and never runs here; what decides
+        # a model switch has to be right before the first dollar, and that is free.
+        run: python3 tests/test_quality.py
+
+      - name: Conformance — every Anthropic response is the SDK's own type
+        # Layer one of docs/testing.md: raw bodies validated strictly against the
+        # official SDK's models, including the error a failed turn produces.
+        run: python3 tests/conformance_anthropic.py
+
+      - name: Conformance — every OpenAI response is what their OpenAPI document declares
+        run: python3 tests/conformance_openai.py
+
+      - name: Behaviour — each scenario's trace against its golden
+        # Layer two. A golden recorded from the original is a parity check; one
+        # recorded from us is provisional and says so in the report.
+        run: python3 tests/behaviour.py
