@@ -1,0 +1,12 @@
+{"id": "fact-canberra", "group": "facts", "input": "What is the capital of Australia?", "score": "contains", "expect": ["Canberra"], "oracle": "Canberra."}
+{"id": "fact-gold", "group": "facts", "input": "What is the chemical symbol for gold?", "score": "regex", "expect": "\\bAu\\b", "oracle": "Au"}
+{"id": "fact-austen", "group": "facts", "input": "Who wrote Pride and Prejudice?", "score": "contains", "expect": ["Austen"], "oracle": "Jane Austen."}
+{"id": "fact-moon", "group": "facts", "input": "In what year did people first land on the Moon?", "score": "number", "expect": 1969, "oracle": "1969"}
+{"id": "math-multiply", "group": "arithmetic", "input": "What is 17 multiplied by 23?", "score": "number", "expect": 391, "oracle": "17 × 23 = 391"}
+{"id": "math-power", "group": "arithmetic", "input": "What is 2 to the power of 10?", "score": "number", "expect": 1024, "oracle": "1024"}
+{"id": "math-eggs", "group": "arithmetic", "input": "I have 3 boxes of 12 eggs and break 5 of them. How many unbroken eggs are left?", "score": "number", "expect": 31, "oracle": "36 - 5 = 31"}
+{"id": "math-percent", "group": "arithmetic", "input": "What is 15% of 240?", "score": "number", "expect": 36, "oracle": "36"}
+{"id": "obey-one-word", "group": "instructions", "instructions": "Reply with exactly one word and nothing else.", "input": "Is ice colder than boiling water? Answer yes or no.", "score": "regex", "expect": "(?i)^\\W*yes\\W*$", "oracle": "Yes", "must": ["^\\s*\\S+\\s*$"]}
+{"id": "obey-lowercase", "group": "instructions", "instructions": "Write only in lowercase letters. Never use a capital letter.", "input": "Name the largest planet in the solar system.", "score": "contains", "expect": ["jupiter"], "oracle": "jupiter", "must_not": ["[A-Z]"]}
+{"id": "obey-json", "group": "instructions", "instructions": "Output only a JSON object: no prose and no code fences.", "input": "Give the capital of France under the key \"city\".", "score": "json", "expect": {"city": "Paris"}, "oracle": "{\"city\": \"Paris\"}", "must": ["^\\s*\\{[\\s\\S]*\\}\\s*$"]}
+{"id": "obey-number-only", "group": "instructions", "instructions": "Reply with the number only.", "input": "How many days are there in a leap year?", "score": "number", "expect": 366, "oracle": "366", "must": ["^\\s*\\d+\\.?\\s*$"]}

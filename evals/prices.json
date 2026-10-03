@@ -1,0 +1,296 @@
+{
+  "about": "USD per 1M tokens, per model, per period. A cost in a report is priced from here, not from a library's table: every price carries where it was read and when, and a period that ends says what follows. A cache price that is null was not published where the rest was read; such tokens are priced as fresh input, and the report says so.",
+  "models": {
+    "claude-haiku-4-5-20251001": [
+      {
+        "from": "2026-09-29",
+        "input": 1.0,
+        "output": 5.0,
+        "cache_read": 0.1,
+        "cache_write": 1.25,
+        "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
+        "note": "cache prices by Anthropic's published multipliers: read 0.1x, 5-minute write 1.25x"
+      }
+    ],
+    "claude-sonnet-5-5": [
+      {
+        "from": "2026-09-29",
+        "input": 2.0,
+        "output": 10.0,
+        "cache_read": 0.2,
+        "cache_write": 2.5,
+        "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
+        "note": "cache prices by Anthropic's published multipliers"
+      }
+    ],
+    "claude-opus-5-5": [
+      {
+        "from": "2026-09-29",
+        "input": 4.0,
+        "output": 20.0,
+        "cache_read": 0.4,
+        "cache_write": 5.0,
+        "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
+        "note": "cache prices by Anthropic's published multipliers"
+      }
+    ],
+    "claude-fable-5-1": [
+      {
+        "from": "2026-09-29",
+        "input": 10.0,
+        "output": 50.0,
+        "cache_read": 1.0,
+        "cache_write": 12.5,
+        "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
+        "note": "cache prices by Anthropic's published multipliers"
+      }
+    ],
+    "gpt-6-luna": [
+      {
+        "from": "2026-09-29",
+        "input": 0.1,
+        "output": 0.5,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://developers.openai.com/api/docs/models"
+      }
+    ],
+    "gpt-6-sol": [
+      {
+        "from": "2026-09-29",
+        "input": 2.0,
+        "output": 10.0,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://developers.openai.com/api/docs/models"
+      }
+    ],
+    "gpt-6-astra": [
+      {
+        "from": "2026-09-29",
+        "input": 10.0,
+        "output": 50.0,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://developers.openai.com/api/docs/models"
+      }
+    ],
+    "gemini-3.8-flash": [
+      {
+        "from": "2026-09-30",
+        "until": "2026-12-31",
+        "input": 0.75,
+        "output": 3.75,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://ai.google.dev/gemini-api/docs/pricing",
+        "note": "introductory price; output includes thinking tokens"
+      },
+      {
+        "from": "2027-01-01",
+        "input": 1.5,
+        "output": 7.5,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://ai.google.dev/gemini-api/docs/pricing",
+        "note": "announced on the same page; output includes thinking tokens"
+      }
+    ],
+    "gemini-3.5-flash-lite": [
+      {
+        "from": "2026-09-30",
+        "input": 0.3,
+        "output": 2.5,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://ai.google.dev/gemini-api/docs/pricing",
+        "note": "output includes thinking tokens"
+      }
+    ],
+    "grok-4.3": [
+      {
+        "from": "2026-09-30",
+        "input": 1.25,
+        "output": 2.5,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://api.x.ai/v1/language-models"
+      }
+    ],
+    "deepseek-flash": [
+      {
+        "from": "2026-09-30",
+        "input": 0.3,
+        "output": 1.2,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models (deepseek/deepseek-v4.1-flash)",
+        "note": "OpenRouter's listing for the same model; DeepSeek's own price page was not read"
+      }
+    ],
+    "kimi-k2.6": [
+      {
+        "from": "2026-09-30",
+        "input": 0.95,
+        "output": 4.0,
+        "cache_read": 0.16,
+        "cache_write": null,
+        "source": "https://platform.kimi.ai/docs/pricing/chat"
+      }
+    ],
+    "kimi-k3": [
+      {
+        "from": "2026-09-30",
+        "input": 3.0,
+        "output": 15.0,
+        "cache_read": 0.3,
+        "cache_write": 3.0,
+        "source": "https://platform.kimi.ai/docs/pricing/chat",
+        "note": "cache write at the 5-minute TTL"
+      }
+    ],
+    "qwen3.8-flash": [
+      {
+        "from": "2026-09-30",
+        "input": 0.15,
+        "output": 0.47,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models (qwen/qwen3.8-flash)",
+        "note": "OpenRouter's listing; Alibaba's own price page was not read"
+      }
+    ],
+    "openrouter/z-ai/glm-5.3-flash": [
+      {
+        "from": "2026-09-30",
+        "input": 0.15,
+        "output": 0.5,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models (z-ai/glm-5.3-flash)",
+        "note": "through OpenRouter; its price can vary by the provider it routes to"
+      }
+    ],
+    "openrouter/meta-llama/llama-4-maverick": [
+      {
+        "from": "2026-09-30",
+        "input": 0.188,
+        "output": 0.652,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models (meta-llama/llama-4-maverick)",
+        "note": "through OpenRouter; its price can vary by the provider it routes to"
+      }
+    ],
+    "openrouter/openai/gpt-oss-20b": [
+      {
+        "from": "2026-09-30",
+        "input": 0.03,
+        "output": 0.14,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/openai/gpt-oss-20b/endpoints (read 2026-09-30)",
+        "note": "OpenRouter picks the host: 0.018–0.04 in, 0.09–0.15 out across 12 hosts (fp4, fp8, bf16); priced at a typical bf16 host"
+      }
+    ],
+    "openrouter/openai/gpt-oss-120b": [
+      {
+        "from": "2026-09-30",
+        "input": 0.037,
+        "output": 0.17,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/openai/gpt-oss-120b/endpoints (read 2026-09-30)",
+        "note": "OpenRouter picks the host: 0.03–0.05 in, 0.17–0.30 out across 24 hosts; priced at the listed price"
+      }
+    ],
+    "openrouter/meta/muse-glimmer-30b": [
+      {
+        "from": "2026-09-30",
+        "input": 0.3,
+        "output": 1.2,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/meta/muse-glimmer-30b/endpoints (read 2026-09-30)",
+        "note": "three hosts: 0.30–0.35 in, 1.10–1.50 out; priced at the listed price"
+      }
+    ],
+    "openrouter/google/gemma-4-26b-a4b-it": [
+      {
+        "from": "2026-09-30",
+        "input": 0.076,
+        "output": 0.255,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/google/gemma-4-26b-a4b-it/endpoints (read 2026-09-30)",
+        "note": "OpenRouter picks among 14 hosts: 0.04–0.10 in, 0.20–0.33 out; priced at the listed price. Google's own API offers Gemma 4 on the free tier only"
+      }
+    ],
+    "openrouter-fp8/qwen/qwen3.8-27b": [
+      {
+        "from": "2026-09-30",
+        "input": 0.24,
+        "output": 2.2,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/qwen/qwen3.8-27b/endpoints (read 2026-09-30)",
+        "note": "pinned to FP8 hosts (AkashML, Parasail, Chutes, Mancer 2): 0.20–0.24 in, 1.78–2.20 out; priced at the upper end"
+      }
+    ],
+    "openrouter-fp8/z-ai/glm-5.3-flash": [
+      {
+        "from": "2026-09-30",
+        "input": 0.09,
+        "output": 0.3,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3-flash/endpoints (read 2026-09-30)",
+        "note": "pinned to FP8 hosts: 0.084–0.115 in, 0.28–0.385 out; priced at a typical one"
+      }
+    ],
+    "openrouter-fp8/moonshotai/kimi-k2.6": [
+      {
+        "from": "2026-09-30",
+        "input": 0.6,
+        "output": 2.52,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/moonshotai/kimi-k2.6/endpoints (read 2026-09-30)",
+        "note": "pinned to FP8 hosts; StreamLake's price, the cheapest FP8 host seen"
+      }
+    ],
+    "deepseek-v4-pro": [
+      {
+        "from": "2026-09-30",
+        "input": 0.66,
+        "output": 1.98,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/deepseek/deepseek-v4-pro-0813/endpoints (read 2026-09-30)",
+        "note": "DeepSeek's own endpoint as OpenRouter lists it; called direct, DeepSeek's own price page was not read"
+      }
+    ],
+    "qwen3.8-max": [
+      {
+        "from": "2026-09-30",
+        "input": 2.0,
+        "output": 6.0,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models/qwen/qwen3.8-max-0902/endpoints (read 2026-09-30)",
+        "note": "Alibaba's endpoint as OpenRouter lists it; called direct through DashScope, whose own price page was not read"
+      }
+    ],
+    "openrouter/qwen/qwen3.8-flash": [
+      {
+        "from": "2026-10-01",
+        "input": 0.15,
+        "output": 0.47,
+        "cache_read": null,
+        "cache_write": null,
+        "source": "https://openrouter.ai/api/v1/models (qwen/qwen3.8-flash)",
+        "note": "through OpenRouter: aichain's direct DashScope client takes no tools; the price OpenRouter lists"
+      }
+    ]
+  }
+}
