@@ -1,29 +1,28 @@
-# Data model — draft
+# Data model
 
-The tables, keys and item shapes [architecture.md](architecture.md) relies on.
-Everything here is a proposal until code exists.
+The tables, keys and items [architecture.md](architecture.md) relies on, as
+built (`src/store.py`, `src/agentstore.py`, `src/vault.py`, `src/tokens.py`).
 
-Three rules hold everywhere and explain most of the shapes below:
+Three rules hold everywhere:
 
-1. **The tenant is a prefix of every partition key.** A query without a tenant
-   has no key to write, so the isolation is structural rather than careful. An
-   IAM role per tenant with a `dynamodb:LeadingKeys` condition makes it
-   enforceable where required.
-2. **Ordering comes from conditional writes, not from the queue.** Every event is
-   appended with `attribute_not_exists(sk)`, so the sequence number is assigned
-   by whichever write wins.
-3. **Nothing large lives in an item.** DynamoDB's limit is 400 KB; anything over
-   64 KB goes to S3 and the item carries a pointer. One enormous tool result can
-   never make a session unreadable.
+1. **The tenant is a prefix of every partition key.** It comes from the caller's
+   token, never from the request, and a query without one has no key to write.
+2. **Ordering comes from conditional writes.** Every event is appended with
+   `attribute_not_exists`, so its sequence number belongs to whichever write wins.
+3. **Nothing large lives in an item.** DynamoDB's limit is 400 KB; a tool result
+   is cut at 64 KB before it is written.
 
-All tables are on-demand capacity: a deployment that is idle costs storage only.
+Three tables, all on-demand: an idle deployment pays for storage only.
 
-## Tables
+| Table | Default name | Holds |
+|---|---|---|
+| sessions | `yait_agents_sessions` | one item per session |
+| events | `yait_agents_events` | the log |
+| agents | `yait_agents_agents` | agents and their versions, vaults and credentials, the installation's public keys |
 
-### `sessions`
+Each has a string partition key `pk` and a sort key `sk`.
 
-One item per session — the cursor, the lease, the status and the counters.
-Read and written on every step, so it is kept small.
+## `sessions`
 
 | | |
 |---|---|
@@ -32,224 +31,115 @@ Read and written on every step, so it is kept small.
 
 | Attribute | Meaning |
 |---|---|
-| `status` | the **internal** state, projected per dialect on the way out — see [api.md](api.md#status-four-values-each-one-name-in-common). Neither dialect's enum is stored |
-| `outcome` | success or failure, held separately because Anthropic's `terminated` covers both and OpenAI's `failed` cannot otherwise be rendered |
-| `dialect` | which façade created the session; recorded for audit, never to change behaviour |
-| `agent_id`, `agent_version` | the pinned agent; a session never follows a moving version |
-| `model` | the session's override, when it has one |
+| `tenant`, `session` | the key's parts, kept as fields so a listing can filter on them |
+| `status` | the **internal** state (`src/events.py`), projected per dialect on the way out — see [architecture.md](architecture.md#states). Neither dialect's enum is stored |
+| `dialect` | which façade created the session; recorded, never used to change behaviour |
+| `agent_id`, `agent_version` | the pinned agent version; a session never follows a moving one |
+| `agent_overrides` | what an update to the session changed in the agent, applied from the next step |
+| `vault_ids` | the vaults whose credentials the session's MCP calls use |
+| `budget` | `{type: "limit", max_list_cost: {amount, currency}}`, amount in cents as an integer string |
+| `agent_state` | the library's run counters — `steps`, `tokens`, `cost`; the budget is measured against `cost` |
 | `cursor` | the highest committed event sequence |
-| `agent_state` | the library's `state` dict — `steps`, `tokens`, `cost`, `plan`, `adaptations` |
-| `lease_holder`, `lease_until` | the single-writer lease; taken with a conditional update |
-| `budget_limit_usd`, `budget_spent_usd` | the ceiling and an atomic counter |
-| `run_id` | set while a run is suspended; the key into `runs` |
-| `awaiting` | `{reason, resume_with}`, copied out for the API to render without loading the run document |
-| `parked_index` | present only while parked — the sparse key of `GSI-parked` |
-| `month` | `YYYY-MM`, the shard key of `GSI-recent` |
-| `created_at`, `updated_at` | |
+| `lease_holder`, `lease_until` | the single-writer lease, taken with a conditional update; `lease_until` is milliseconds, 0 when released |
+| `title`, `metadata` | the caller's |
+| `created_at`, `updated_at`, `archived_at`, `deleted_at` | milliseconds since the epoch |
+| `purged` | on a deleted session whose log is gone |
 
-**`GSI-recent`** — `pk = T#<tenant>#<month>`, `sk = U#<updated_at>#<session>`.
-Lists a tenant's sessions newest first. Sharded by month because an unsharded
-per-tenant index is one partition taking every write.
+**A deleted session leaves a tombstone**: the item is replaced by its key,
+`tenant`, `session`, `deleted_at`, `status: deleted` and `purged: true`. A second
+delete answers as the first did, and a late wake-up knows there is nothing to do.
 
-**`GSI-parked`** — `pk = T#<tenant>#parked`, `sk = <expires_at>`. Sparse: only
-parked sessions carry `parked_index`. This is what answers "how many parked runs
-does this tenant have" and what the expiry sweep reads.
-
-A child in a swarm is a session of its own: `pk = T#<tenant>#S#<session>#C#<child>`.
-Its own partition, its own fold, its own budget draw against the parent's counter.
-
-### `events`
+## `events`
 
 The log. Append-only, and the only source of truth for what happened.
 
 | | |
 |---|---|
-| `pk` | `T#<tenant>#S#<session>` |
-| `sk` | `seq` — a **number**, not a padded string, so the store's ordering is the sequence's ordering and there is no padding bug to find later |
+| `pk` | `T#<tenant>#S#<session>` — the session's own partition |
+| `sk` | the sequence — a **number**, so the store's order is the sequence's order. 0 is `session.created` |
 
 | Attribute | Meaning |
 |---|---|
-| `type` | our own vocabulary, not a dialect's: the user's message, the agent's message, a tool call, its *started* record, its result, an approval requested and decided, a client-supplied tool result, an interrupt, a failed step |
-| `turn_id` | the turn this event belongs to. The Anthropic dialect never exposes turns; OpenAI serves `/turns` and `/items` from them, so they are recorded whether or not anyone asks |
-| `item_id` | identity of the item this event produced, for the same reason |
-| `call_id` | on tool calls — the second way a pending call is addressed. Anthropic keys a confirmation by the **event id**, OpenAI by `turn_id` + `call_id`; both must exist or one façade cannot resolve its own pending work |
-| `ts` | when it was committed |
-| `actor` | who caused it — the client key, a user, a schedule, the agent itself |
-| `payload` or `payload_s3` | the body, or its pointer above 64 KB |
-| `usage`, `cost_usd`, `model` | on model calls only; this is what a bill is reconstructed from |
-| `placement`, `plugin` | on plugin calls — which runner served it |
-| `ttl` | `created_at + retention_days` |
+| `type` | our own vocabulary, not a dialect's (`src/events.py`): the user's message, the agent's message and thinking, tool calls and results, model request start and end, status, usage, interrupts, failed steps |
+| `event_id` | the id clients dedupe by, separate from the sequence |
+| `ts` | when it was made, milliseconds |
+| `processed_at` | null while input waits for the worker; both dialects show it |
+| `turn_id`, `item_id` | the turn and item it belongs to. The Anthropic dialect never shows turns; OpenAI serves `/turns` and `/items` from them, so they are always recorded |
+| `actor` | `user`, `agent` or `system` |
+| the payload | the event's own fields, flat: `text`, `calls`, `call_id`, `name`, `server`, `result`, `is_error`, `late`, `usage`, `backend`, `reason`, `error_type`, `mcp_server`, `stop_reason` |
 
-Written with `ConditionExpression: attribute_not_exists(sk)`. Sequence 0 is
-`session.created`, so a fold never has to special-case an empty partition.
+A commit writes the events and the session item in **one
+`TransactWriteItems`**: a `Put` per event with `attribute_not_exists(sk)`, and
+one `Update` on the session item (cursor, status, `agent_state`, and whatever the
+step changed). The events and the counters cannot disagree. A commit that loses a
+race re-reads and writes at the new cursor.
 
-### `deltas`
+## `agents`
 
-Text fragments, for the stream only. **The fold never reads this table**, which
-is why it is a table and not a range of the log.
+One table for everything an installation configures, by key prefix.
 
-| | |
-|---|---|
-| `pk` | `T#<tenant>#S#<session>` |
-| `sk` | `<seq>#<n>` — the event being built, and the fragment's index |
-| `ttl` | minutes |
-
-Nothing here is load-bearing, and that is a property of both dialects rather than
-a convenience of ours: neither replays its stream, so an expired fragment cannot
-strand anything. Anthropic's deltas are requested per connection and are
-explicitly never persisted; OpenAI's are ordinary events in its enumeration but
-are equally unreplayable. A client that ignores deltas still receives a complete,
-correct stream, and the committed event is always the authoritative record.
-
-The rows exist only so a connection that asked for previews can be served from
-the same store as everything else. They are written on the way past, read once,
-and expire.
-
-### `runs`
-
-The library's `StateStore`, and nothing else. It holds a run document only while
-the run is suspended — that narrowness is what gives the deduplication property:
-`resume()` on a `run_id` the store no longer holds raises `KeyError`, which
-at-least-once delivery reads as "already handled".
-
-| | |
-|---|---|
-| `pk` | `T#<tenant>#R#<run_id>` |
-| `sk` | `doc` |
-
-| Attribute | Meaning |
-|---|---|
-| `schema_version` | the run document's format. **The library has no such field today**, and without it a format change can only be answered by breaking every stored run |
-| `document` or `document_s3` | the document, or its pointer |
-| `awaiting` | `{reason, resume_with}` — the shape a signal must match |
-| `hint` | what should wake it: `{"cron": …}`, `{"on": …}`, `{"wake_at": …}` |
-| `session` | the session this run belongs to |
-| `expires_at`, `ttl` | thirty days by default; an armed run nothing ever wakes is a leak |
-
-An armed subscription is a run in this table that has taken no step. There is no
-separate subscriptions table: its `run_id` *is* the subscription.
-
-### `agents`
+### Agents
 
 | | |
 |---|---|
 | `pk` | `T#<tenant>#A#<agent_id>` |
-| `sk` | `V#<version>`, and `meta` for the pointer to the current version |
+| `sk` | `meta` — the current version, `archived_at`; `V#<n>` — each version |
 
-The definition inline, or in the versioned S3 bucket when large. Versions are
-never mutated; a session pins one at creation.
+A version is never changed; an update writes `V#<n+1>` and moves `meta` with a
+condition on the version it read. Each version holds the definition as the
+caller gave it: `name`, `model`, `instructions` (Anthropic's `system`),
+`tools`, `mcp_servers`, `skills`, `metadata`, `created_at`.
 
-### `memory`
-
-| | |
-|---|---|
-| `pk` | `T#<tenant>#M#<store>` |
-| `sk` | `D#<path>` for the head, `D#<path>#V#<rev>` for a version |
-
-| Attribute | Meaning |
-|---|---|
-| `content` or `content_s3` | |
-| `content_sha256` | the precondition an update is written against |
-| `rev`, `updated_at`, `redacted` | |
-| `ttl` | on versions only — thirty days. **The head has no TTL** |
-
-The vector index is a separate store over these same documents, written in the
-same operation. A search that can find what a delete removed is worse than no
-search.
-
-### `audit`
-
-Approvals with their author, plugin installs and grants, secret reads, domain
-changes. A separate table from `events` for two reasons: it must outlive the
-event retention, and it is read by a different role.
+### Vaults and credentials
 
 | | |
 |---|---|
-| `pk` | `T#<tenant>#<YYYY-MM>` |
-| `sk` | `<ts>#<ulid>` |
+| `pk` | `T#<tenant>#VAULT#<vault_id>` |
+| `sk` | `vault` — the vault; `C#<credential_id>` — each credential |
 
-No TTL by default. Append-only by IAM policy, not by convention.
+| Credential attribute | Meaning |
+|---|---|
+| `auth` | what may be shown: `type` (`static_bearer`) and `mcp_server_url` |
+| `secret` | the token, sealed: `<key id>:<base64 of nonce + AES-256-GCM ciphertext>`, with tenant, vault and credential as associated data. **Never returned** by any API |
+| `name`, `metadata`, `created_at`, `updated_at`, `archived_at` | |
 
-### `idempotency`
+The key that seals them is the secret `yait_agents/vault-key` in Secrets Manager,
+not in the table ([operations.md](operations.md#rotating-keys)).
 
-A client's `Idempotency-Key` on a write, so a retried POST does not become a
-second user message.
+### The installation's public keys
 
 | | |
 |---|---|
-| `pk` | `T#<tenant>#I#<key>` |
-| `sk` | `meta` |
-| | the resulting event sequence, and a `ttl` of 24 h |
+| `pk` | `_installation` |
+| `sk` | `jwt_key#<kid>` |
 
-## The step's commit
-
-One `TransactWriteItems` at each commit point:
-
-- a `Put` per event, each with `attribute_not_exists(sk)`;
-- one `Update` on the session item: `cursor`, `agent_state`, `status`, the lease,
-  and `ADD budget_spent_usd`.
-
-This is what makes "every state transition is written before it is acted on" true
-rather than aspirational: the events and the counters cannot disagree. Two costs
-are accepted knowingly — a transaction is billed at twice a write, and the limits
-are 100 items and 4 MB. A step emits a handful of events, so the limits are
-headroom; if one ever exceeds them, the events go first (the conditional append
-makes them safe to repeat) and the session update follows.
-
-A step with a side effect commits twice: once for `tool_call.started` before the
-tool runs, once for everything else after it.
+The Ed25519 public key tokens are checked with, written by `keys.py keygen` and
+removed by `revoke-key`. `_installation` cannot collide with a tenant's key, which
+always starts `T#`.
 
 ## Read patterns
 
 | Question | Access |
 |---|---|
 | What is the conversation? | `Query` on the session partition of `events`, folded |
-| What happened after event N? | the same query with `sk > N` — the stream and the history endpoint are one code path |
+| What happened after event N? | the same query with `sk > N` |
 | What is this session doing? | `GetItem` on `sessions` |
-| This tenant's recent sessions | `Query GSI-recent` |
-| How many parked runs, and which expire next? | `Query GSI-parked` |
-| Resume this signal | `GetItem` on `runs`, then the library's `resume()` |
-| What did this cost? | `Query` the session partition, sum `cost_usd` — raw records, not an estimate |
-| Who approved this? | `Query` the tenant's month in `audit` |
-
-## S3
-
-| Bucket / prefix | Holds |
-|---|---|
-| `payloads/T/<tenant>/S/<session>/E/<seq>` | event payloads over 64 KB |
-| `runs/T/<tenant>/R/<run_id>` | run documents over the item limit |
-| `artifacts/T/<tenant>/S/<session>/…` | what a run produced or consumed; this is also what a plugin's `workspace` maps to in the cloud |
-| `packages/` (versioned) | agent definitions and skill packages |
-
-A plugin never receives a host path — it receives a workspace, and the runner
-decides whether that is a bind mount or one of these prefixes. That is what lets
-the same image digest run on a laptop and in the account.
+| This tenant's sessions, agents, vaults | a `Scan` filtered by tenant — see below |
+| An agent at a version | `GetItem` on `meta`, then on `V#<n>` |
+| A credential for an MCP server | `Query` the vault's partition, match `mcp_server_url`, open `secret` |
+| What did this cost? | `Query` the session partition and sum `usage`; the session's `agent_state.cost` holds the running total |
 
 ## Retention
 
-| Data | Default |
+Nothing expires by itself: there is no TTL. A session's events go when the
+session is deleted; an archived session keeps them. The log groups need a
+retention set by hand ([operations.md](operations.md#watching-it)).
+
+## Known limits
+
+| | |
 |---|---|
-| Events | 30 days, configurable |
-| Deltas | minutes |
-| Memory versions | 30 days; the head forever |
-| Run documents / subscriptions | 30 days from arming |
-| Audit | no expiry |
-| Idempotency keys | 24 hours |
-
-Every one of these is a TTL attribute rather than a sweeper job, except the
-parked-run expiry, which needs to write a `step.failed` and notify — so it reads
-`GSI-parked` on a schedule and does the work deliberately.
-
-## Open decisions
-
-1. **Separate tables or one.** Six purposeful tables are written above because
-   per-table IAM is legible and the access patterns differ. A single-table design
-   would cost fewer resources and more explaining.
-2. **The fold's cost at scale.** A session with thousands of events pays for its
-   whole partition on every step. A materialised fold in S3, keyed by cursor,
-   fixes it and is not needed until measured.
-3. **The vector backend** — pgvector on Aurora Serverless, or S3 Vectors. Some
-   backends bill for capacity while idle, which is why semantic search is off by
-   default.
-4. **Cross-region** is out of scope for version one, and the key shape above does
-   not prejudge it: nothing in a key names a region.
+| Listings scan | listing a tenant's sessions, agents or vaults is a `Scan` with a filter — fine while listings are rare and human-driven, and the first thing to replace when a deployment grows: a per-tenant index, sharded by month so one tenant is not one hot partition |
+| The fold reads the whole partition | a session of thousands of events pays for all of them on every step; a materialised fold keyed by cursor is the fix when measured |
+| No idempotency keys | a POST retried by the client after a timeout can add a second message |
+| One region | nothing in a key names a region; moving is an export and import ([operations.md](operations.md#regions)) |
